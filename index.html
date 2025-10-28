@@ -5,330 +5,241 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KPIs OPS INDRIVE - Veikul</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
-
-        // ===== DATOS DEL DASHBOARD =====
-        const RAW_DATA = {
-            semanal: `Semana	Ciudad	Autos con >$1 	# Autos siniestro 	% Autos siniestro	# Autos con duplas	% Autos con duplas	# Autos activos	% Autos activos	# Autos con facturación >$7,500	% Autos con facturación >$7,500	# Autos con facturación >$13,100	% Autos con facturación >$13,100
-40	CDMX	35	2	5.26%	0	0%	36	97.22%	10	27.78%	0	0.00%
-41	CDMX	33	5	13.16%	0	0%	33	100.00%	6	18.18%	0	0.00%
-42	CDMX	35	3	7.89%	0	0%	35	100.00%	11	31.43%	0	0.00%
-43	CDMX	34	3	7.89%	0	0%	35	97.14%	3	8.57%	0	0.00%
-40	GDL	21	6	20.69%	0	0%	23	91.30%	10	43.48%	0	0.00%
-41	GDL	25	4	13.79%	0	0%	25	100.00%	11	44.00%	0	0.00%
-42	GDL	25	3	10.34%	0	0%	26	96.15%	11	42.31%	0	0.00%
-43	GDL	23	3	10.34%	0	0%	26	88.46%	14	53.85%	0	0.00%
-40	Mérida	39	8	16.67%	1	2.50%	40	97.50%	30	75.00%	1	2.50%
-41	Mérida	41	7	14.58%	4	9.75%	41	100.00%	27	65.85%	1	2.44%
-42	Mérida	41	6	12.50%	1	2.38%	42	97.62%	27	64.29%	2	4.76%
-43	Mérida	45	3	6.25%	2	4.44%	45	100.00%	33	73.33%	1	2.22%`,
-            
-            mensual: `Mes	Ciudad	Autos con >$1 	# Autos siniestro 	% Autos siniestro	# Autos con duplas	% Autos con duplas	# Autos activos	% Autos activos	# Autos con facturación >$32,500	% Autos con facturación >$32,500	# Autos con facturación >$57,000	% Autos con facturación >$57,00
-Octubre	CDMX	37	3.3	8.55%	0	0%	34.8	100.00%	1	2.88%	0	0.00%
-Octubre	GDL	26	4	13.79%	0	0%	25	100.00%	0	0.00%	0	0.00%
-Octubre	Mérida	45	6	12.50%	2	4.8%	42	100.00%	17	40.48%	1	2.38%`
-        };
-
-        const App = () => {
-            const [selectedCity, setSelectedCity] = useState('');
-            const [viewMode, setViewMode] = useState('weekly');
-            const [weeklyData, setWeeklyData] = useState([]);
-            const [monthlyData, setMonthlyData] = useState([]);
-            const [lastUpdate] = useState(new Date().toLocaleDateString('es-MX', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            }));
-
-            const VEIKUL_COLORS = {
-                primary: '#00cc99',
-                secondary: '#00b88a',
-                blue: '#326cf2',
-                accent: '#1ad1a3'
-            };
-
-            const cities = ['CDMX', 'GDL', 'Mérida'];
-            
-            const CITY_COLORS = {
-                'CDMX': VEIKUL_COLORS.primary,
-                'GDL': VEIKUL_COLORS.blue,
-                'Mérida': '#f59e0b'
-            };
-
-            const parsePercentage = (value) => {
-                if (typeof value === 'number') return value;
-                if (typeof value === 'string') {
-                    return parseFloat(value.replace('%', '').trim()) || 0;
-                }
-                return 0;
-            };
-
-            const parseData = (rawText) => {
-                const lines = rawText.trim().split('\n');
-                const headers = lines[0].split('\t').map(h => h.trim());
-                
-                return lines.slice(1).map(line => {
-                    const values = line.split('\t');
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index]?.trim() || '';
-                    });
-                    return row;
-                });
-            };
-
-            const loadSheetData = (city) => {
-                try {
-                    const weeklyParsed = parseData(RAW_DATA.semanal);
-                    const monthlyParsed = parseData(RAW_DATA.mensual);
-                    
-                    if (city === 'TODAS') {
-                        const weeklyBySemana = {};
-                        weeklyParsed.forEach(row => {
-                            if (!row.Ciudad || !row.Semana) return;
-                            const semana = row.Semana;
-                            if (!weeklyBySemana[semana]) weeklyBySemana[semana] = { semana };
-                            
-                            const cityPrefix = row.Ciudad;
-                            weeklyBySemana[semana][`autos_con_1_${cityPrefix}`] = parseFloat(row['Autos con >$1']) || 0;
-                            weeklyBySemana[semana][`pct_siniestro_${cityPrefix}`] = parsePercentage(row['% Autos siniestro']);
-                            weeklyBySemana[semana][`pct_duplas_${cityPrefix}`] = parsePercentage(row['% Autos con duplas']);
-                            weeklyBySemana[semana][`pct_fact_7500_${cityPrefix}`] = parsePercentage(row['% Autos con facturación >$7,500']);
-                        });
-                        
-                        setWeeklyData(Object.values(weeklyBySemana));
-                        setMonthlyData([]);
-                    } else {
-                        const filteredWeekly = weeklyParsed
-                            .filter(row => row.Ciudad === city && row.Semana)
-                            .map(row => ({
-                                semana: row.Semana,
-                                autos_con_1: parseFloat(row['Autos con >$1']) || 0,
-                                pct_siniestro: parsePercentage(row['% Autos siniestro']),
-                                pct_duplas: parsePercentage(row['% Autos con duplas']),
-                                pct_fact_7500: parsePercentage(row['% Autos con facturación >$7,500']),
-                            }));
-
-                        setWeeklyData(filteredWeekly);
-                        setMonthlyData([]);
-                    }
-                    
-                } catch (error) {
-                    console.error('Error loading data:', error);
-                }
-            };
-
-            useEffect(() => {
-                if (selectedCity) {
-                    loadSheetData(selectedCity);
-                }
-            }, [selectedCity]);
-
-            const currentData = weeklyData;
-
-            return (
-                <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
-                    <div className="max-w-7xl mx-auto space-y-6">
-                        <div className="flex justify-between items-start mb-8">
-                            <div>
-                                <div className="flex items-center gap-4 mb-3">
-                                    <svg width="50" height="50" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M598.334 474.408C641.995 474.408 677.389 439.171 677.389 395.704C677.389 352.237 641.995 317 598.334 317C554.672 317 519.278 352.237 519.278 395.704C519.278 439.171 554.672 474.408 598.334 474.408Z" fill="#00D195"/>
-                                        <path d="M547.709 564.395L872.808 446.668C881.512 443.507 890.854 442.484 900.04 443.683C909.226 444.883 917.985 448.269 925.576 453.557C933.168 458.844 939.367 465.876 943.647 474.057C947.927 482.237 950.162 491.324 950.163 500.547C950.174 512.313 946.558 523.798 939.802 533.45C933.045 543.103 923.474 550.458 912.383 554.521L610.14 663.409L912.383 772.672C923.474 776.736 933.045 784.09 939.802 793.743C946.558 803.396 950.174 814.881 950.163 826.646C950.162 835.87 947.927 844.957 943.647 853.138C939.367 861.318 933.168 868.35 925.576 873.637C917.985 878.925 909.226 882.312 900.04 883.511C890.854 884.71 881.512 883.686 872.808 880.526L547.709 762.894C527.239 755.471 509.556 741.965 497.054 724.204C484.552 706.442 477.836 685.285 477.815 663.597C477.828 641.918 484.543 620.77 497.046 603.021C509.551 585.274 527.239 571.788 547.709 564.395Z" fill="#00D195"/>
-                                        <path d="M722.349 663.597C722.327 685.285 715.611 706.442 703.11 724.204C690.608 741.965 672.925 755.471 652.454 762.894L327.355 880.526C318.651 883.686 309.31 884.71 300.124 883.511C290.938 882.312 282.178 878.925 274.587 873.637C266.995 868.35 260.797 861.318 256.517 853.138C252.237 844.957 250.001 835.87 250 826.646C249.989 814.881 253.606 803.396 260.362 793.743C267.119 784.09 276.69 776.736 287.78 772.672L589.551 663.409L287.875 554.521C276.784 550.458 267.214 543.103 260.457 533.45C253.7 523.798 250.083 512.313 250.095 500.547C250.096 491.324 252.331 482.237 256.611 474.057C260.891 465.876 267.09 458.844 274.681 453.557C282.272 448.269 291.032 444.883 300.219 443.683C309.405 442.484 318.746 443.507 327.45 446.668L652.55 564.395C673.002 571.804 690.669 585.297 703.155 603.043C715.642 620.789 722.342 641.93 722.349 663.597Z" fill="#B3F0E0"/>
-                                        <path d="M610.423 663.411L912.665 772.675C923.756 776.738 933.326 784.093 940.083 793.745C946.84 803.397 950.457 814.883 950.446 826.648C950.444 835.872 948.209 844.959 943.929 853.139C939.649 861.32 933.45 868.352 925.859 873.639C918.268 878.927 909.507 882.313 900.321 883.512C891.135 884.712 881.794 883.688 873.09 880.528L547.99 762.895C527.521 755.473 509.838 741.966 497.336 724.206C484.834 706.445 478.117 685.287 478.097 663.599C478.172 650.731 480.605 637.985 485.275 625.986L610.423 663.411Z" fill="#00D195"/>
-                                    </svg>
-                                    <div>
-                                        <h1 className="text-4xl font-bold" style={{ color: VEIKUL_COLORS.primary }}>
-                                            KPIs OPS INDRIVE
-                                        </h1>
-                                        <p className="text-sm" style={{ color: VEIKUL_COLORS.secondary }}>Powered by Veikul</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <select
-                                    value={selectedCity}
-                                    onChange={(e) => setSelectedCity(e.target.value)}
-                                    className="bg-slate-800/50 backdrop-blur-sm border text-slate-200 px-4 py-2 rounded-lg min-w-[200px]"
-                                    style={{ borderColor: selectedCity ? VEIKUL_COLORS.primary + '60' : '#475569' }}
-                                >
-                                    <option value="">📍 Seleccionar ciudad...</option>
-                                    <option value="TODAS">🌎 TODAS</option>
-                                    {cities.map((city) => (
-                                        <option key={city} value={city}>{city}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        {!selectedCity ? (
-                            <div className="flex items-center justify-center h-96">
-                                <div className="text-center">
-                                    <h3 className="text-2xl font-semibold mb-2" style={{ color: VEIKUL_COLORS.primary }}>
-                                        Selecciona una ciudad
-                                    </h3>
-                                    <p className="text-slate-400">Elige una ciudad del menú superior</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6">
-                                    <h3 className="text-lg font-bold mb-4" style={{ color: VEIKUL_COLORS.primary }}>
-                                        Autos con al menos $1
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={280}>
-                                        <LineChart data={currentData}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                            <XAxis dataKey="semana" stroke="#64748b" />
-                                            <YAxis stroke="#64748b" />
-                                            <Tooltip />
-                                            <Legend />
-                                            {selectedCity === 'TODAS' ? (
-                                                cities.map(city => (
-                                                    <Line
-                                                        key={city}
-                                                        type="monotone"
-                                                        dataKey={`autos_con_1_${city}`}
-                                                        stroke={CITY_COLORS[city]}
-                                                        strokeWidth={3}
-                                                        name={city}
-                                                    />
-                                                ))
-                                            ) : (
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="autos_con_1"
-                                                    stroke={VEIKUL_COLORS.primary}
-                                                    strokeWidth={3}
-                                                />
-                                            )}
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-
-                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6">
-                                    <h3 className="text-lg font-bold mb-4" style={{ color: '#fb923c' }}>
-                                        % Autos en Siniestro
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={280}>
-                                        <LineChart data={currentData}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                            <XAxis dataKey="semana" stroke="#64748b" />
-                                            <YAxis stroke="#64748b" />
-                                            <Tooltip />
-                                            <Legend />
-                                            {selectedCity === 'TODAS' ? (
-                                                cities.map(city => (
-                                                    <Line
-                                                        key={city}
-                                                        type="monotone"
-                                                        dataKey={`pct_siniestro_${city}`}
-                                                        stroke={CITY_COLORS[city]}
-                                                        strokeWidth={3}
-                                                        name={city}
-                                                    />
-                                                ))
-                                            ) : (
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="pct_siniestro"
-                                                    stroke="#fb923c"
-                                                    strokeWidth={3}
-                                                />
-                                            )}
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-
-                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6">
-                                    <h3 className="text-lg font-bold mb-4" style={{ color: VEIKUL_COLORS.blue }}>
-                                        % Duplas
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={280}>
-                                        <LineChart data={currentData}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                            <XAxis dataKey="semana" stroke="#64748b" />
-                                            <YAxis stroke="#64748b" />
-                                            <Tooltip />
-                                            <Legend />
-                                            {selectedCity === 'TODAS' ? (
-                                                cities.map(city => (
-                                                    <Line
-                                                        key={city}
-                                                        type="monotone"
-                                                        dataKey={`pct_duplas_${city}`}
-                                                        stroke={CITY_COLORS[city]}
-                                                        strokeWidth={3}
-                                                        name={city}
-                                                    />
-                                                ))
-                                            ) : (
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="pct_duplas"
-                                                    stroke={VEIKUL_COLORS.blue}
-                                                    strokeWidth={3}
-                                                />
-                                            )}
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-
-                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6">
-                                    <h3 className="text-lg font-bold mb-4" style={{ color: '#10b981' }}>
-                                        % Autos con $7,500+
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={280}>
-                                        <LineChart data={currentData}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                            <XAxis dataKey="semana" stroke="#64748b" />
-                                            <YAxis stroke="#64748b" />
-                                            <Tooltip />
-                                            <Legend />
-                                            {selectedCity === 'TODAS' ? (
-                                                cities.map(city => (
-                                                    <Line
-                                                        key={city}
-                                                        type="monotone"
-                                                        dataKey={`pct_fact_7500_${city}`}
-                                                        stroke={CITY_COLORS[city]}
-                                                        strokeWidth={3}
-                                                        name={city}
-                                                    />
-                                                ))
-                                            ) : (
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="pct_fact_7500"
-                                                    stroke="#10b981"
-                                                    strokeWidth={3}
-                                                />
-                                            )}
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        )}
+<body class="bg-slate-950 text-slate-100">
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <div class="flex items-center gap-4 mb-3">
+                    <svg width="50" height="50" viewBox="0 0 1200 1200" fill="none">
+                        <path d="M598.334 474.408C641.995 474.408 677.389 439.171 677.389 395.704C677.389 352.237 641.995 317 598.334 317C554.672 317 519.278 352.237 519.278 395.704C519.278 439.171 554.672 474.408 598.334 474.408Z" fill="#00D195"/>
+                        <path d="M547.709 564.395L872.808 446.668C881.512 443.507 890.854 442.484 900.04 443.683C909.226 444.883 917.985 448.269 925.576 453.557C933.168 458.844 939.367 465.876 943.647 474.057C947.927 482.237 950.162 491.324 950.163 500.547C950.174 512.313 946.558 523.798 939.802 533.45C933.045 543.103 923.474 550.458 912.383 554.521L610.14 663.409L912.383 772.672C923.474 776.736 933.045 784.09 939.802 793.743C946.558 803.396 950.174 814.881 950.163 826.646C950.162 835.87 947.927 844.957 943.647 853.138C939.367 861.318 933.168 868.35 925.576 873.637C917.985 878.925 909.226 882.312 900.04 883.511C890.854 884.71 881.512 883.686 872.808 880.526L547.709 762.894C527.239 755.471 509.556 741.965 497.054 724.204C484.552 706.442 477.836 685.285 477.815 663.597C477.828 641.918 484.543 620.77 497.046 603.021C509.551 585.274 527.239 571.788 547.709 564.395Z" fill="#00D195"/>
+                        <path d="M722.349 663.597C722.327 685.285 715.611 706.442 703.11 724.204C690.608 741.965 672.925 755.471 652.454 762.894L327.355 880.526C318.651 883.686 309.31 884.71 300.124 883.511C290.938 882.312 282.178 878.925 274.587 873.637C266.995 868.35 260.797 861.318 256.517 853.138C252.237 844.957 250.001 835.87 250 826.646C249.989 814.881 253.606 803.396 260.362 793.743C267.119 784.09 276.69 776.736 287.78 772.672L589.551 663.409L287.875 554.521C276.784 550.458 267.214 543.103 260.457 533.45C253.7 523.798 250.083 512.313 250.095 500.547C250.096 491.324 252.331 482.237 256.611 474.057C260.891 465.876 267.09 458.844 274.681 453.557C282.272 448.269 291.032 444.883 300.219 443.683C309.405 442.484 318.746 443.507 327.45 446.668L652.55 564.395C673.002 571.804 690.669 585.297 703.155 603.043C715.642 620.789 722.342 641.93 722.349 663.597Z" fill="#B3F0E0"/>
+                        <path d="M610.423 663.411L912.665 772.675C923.756 776.738 933.326 784.093 940.083 793.745C946.84 803.397 950.457 814.883 950.446 826.648C950.444 835.872 948.209 844.959 943.929 853.139C939.649 861.32 933.45 868.352 925.859 873.639C918.268 878.927 909.507 882.313 900.321 883.512C891.135 884.712 881.794 883.688 873.09 880.528L547.99 762.895C527.521 755.473 509.838 741.966 497.336 724.206C484.834 706.445 478.117 685.287 478.097 663.599C478.172 650.731 480.605 637.985 485.275 625.986L610.423 663.411Z" fill="#00D195"/>
+                    </svg>
+                    <div>
+                        <h1 class="text-4xl font-bold" style="color: #00cc99">KPIs OPS INDRIVE</h1>
+                        <p class="text-sm" style="color: #00b88a">Powered by Veikul</p>
                     </div>
                 </div>
-            );
+            </div>
+            <select id="citySelector" class="bg-slate-800 border border-slate-700 text-slate-200 px-4 py-2 rounded-lg">
+                <option value="">📍 Seleccionar ciudad...</option>
+                <option value="TODAS">🌎 TODAS</option>
+                <option value="CDMX">CDMX</option>
+                <option value="GDL">GDL</option>
+                <option value="Mérida">Mérida</option>
+            </select>
+        </div>
+
+        <!-- Mensaje inicial -->
+        <div id="emptyState" class="flex items-center justify-center h-96">
+            <div class="text-center">
+                <h3 class="text-2xl font-semibold mb-2" style="color: #00cc99">Selecciona una ciudad</h3>
+                <p class="text-slate-400">Elige una ciudad del menú superior</p>
+            </div>
+        </div>
+
+        <!-- Gráficas -->
+        <div id="chartsContainer" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-900 rounded-xl p-6">
+                <h3 class="text-lg font-bold mb-4" style="color: #00cc99">Autos con >$1</h3>
+                <canvas id="chart1"></canvas>
+            </div>
+            <div class="bg-slate-900 rounded-xl p-6">
+                <h3 class="text-lg font-bold mb-4" style="color: #fb923c">% Autos en Siniestro</h3>
+                <canvas id="chart2"></canvas>
+            </div>
+            <div class="bg-slate-900 rounded-xl p-6">
+                <h3 class="text-lg font-bold mb-4" style="color: #326cf2">% Duplas</h3>
+                <canvas id="chart3"></canvas>
+            </div>
+            <div class="bg-slate-900 rounded-xl p-6">
+                <h3 class="text-lg font-bold mb-4" style="color: #10b981">% Autos con $7,500+</h3>
+                <canvas id="chart4"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DATA = {
+            semanal: [
+                {semana:'40',ciudad:'CDMX',autos1:35,siniestro:5.26,duplas:0,fact7500:27.78},
+                {semana:'41',ciudad:'CDMX',autos1:33,siniestro:13.16,duplas:0,fact7500:18.18},
+                {semana:'42',ciudad:'CDMX',autos1:35,siniestro:7.89,duplas:0,fact7500:31.43},
+                {semana:'43',ciudad:'CDMX',autos1:34,siniestro:7.89,duplas:0,fact7500:8.57},
+                {semana:'40',ciudad:'GDL',autos1:21,siniestro:20.69,duplas:0,fact7500:43.48},
+                {semana:'41',ciudad:'GDL',autos1:25,siniestro:13.79,duplas:0,fact7500:44.00},
+                {semana:'42',ciudad:'GDL',autos1:25,siniestro:10.34,duplas:0,fact7500:42.31},
+                {semana:'43',ciudad:'GDL',autos1:23,siniestro:10.34,duplas:0,fact7500:53.85},
+                {semana:'40',ciudad:'Mérida',autos1:39,siniestro:16.67,duplas:2.50,fact7500:75.00},
+                {semana:'41',ciudad:'Mérida',autos1:41,siniestro:14.58,duplas:9.75,fact7500:65.85},
+                {semana:'42',ciudad:'Mérida',autos1:41,siniestro:12.50,duplas:2.38,fact7500:64.29},
+                {semana:'43',ciudad:'Mérida',autos1:45,siniestro:6.25,duplas:4.44,fact7500:73.33}
+            ]
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        let charts = {};
+
+        document.getElementById('citySelector').addEventListener('change', (e) => {
+            const city = e.target.value;
+            if (!city) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('chartsContainer').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('chartsContainer').classList.remove('hidden');
+
+            const filteredData = city === 'TODAS' 
+                ? DATA.semanal 
+                : DATA.semanal.filter(d => d.ciudad === city);
+
+            updateCharts(filteredData, city);
+        });
+
+        function updateCharts(data, city) {
+            Object.values(charts).forEach(chart => chart.destroy());
+
+            if (city === 'TODAS') {
+                createMultiCityCharts(data);
+            } else {
+                createSingleCityCharts(data);
+            }
+        }
+
+        function createSingleCityCharts(data) {
+            const labels = data.map(d => `S${d.semana}`);
+
+            charts.chart1 = new Chart(document.getElementById('chart1'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Autos',
+                        data: data.map(d => d.autos1),
+                        borderColor: '#00cc99',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            charts.chart2 = new Chart(document.getElementById('chart2'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: '%',
+                        data: data.map(d => d.siniestro),
+                        borderColor: '#fb923c',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            charts.chart3 = new Chart(document.getElementById('chart3'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: '%',
+                        data: data.map(d => d.duplas),
+                        borderColor: '#326cf2',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            charts.chart4 = new Chart(document.getElementById('chart4'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: '%',
+                        data: data.map(d => d.fact7500),
+                        borderColor: '#10b981',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        function createMultiCityCharts(data) {
+            const semanas = [...new Set(data.map(d => d.semana))];
+            const cities = ['CDMX', 'GDL', 'Mérida'];
+            const colors = {'CDMX': '#00cc99', 'GDL': '#326cf2', 'Mérida': '#f59e0b'};
+
+            const datasets1 = cities.map(c => ({
+                label: c,
+                data: semanas.map(s => {
+                    const row = data.find(d => d.semana === s && d.ciudad === c);
+                    return row ? row.autos1 : null;
+                }),
+                borderColor: colors[c],
+                tension: 0.4
+            }));
+
+            charts.chart1 = new Chart(document.getElementById('chart1'), {
+                type: 'line',
+                data: { labels: semanas.map(s => `S${s}`), datasets: datasets1 },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            const datasets2 = cities.map(c => ({
+                label: c,
+                data: semanas.map(s => {
+                    const row = data.find(d => d.semana === s && d.ciudad === c);
+                    return row ? row.siniestro : null;
+                }),
+                borderColor: colors[c],
+                tension: 0.4
+            }));
+
+            charts.chart2 = new Chart(document.getElementById('chart2'), {
+                type: 'line',
+                data: { labels: semanas.map(s => `S${s}`), datasets: datasets2 },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            const datasets3 = cities.map(c => ({
+                label: c,
+                data: semanas.map(s => {
+                    const row = data.find(d => d.semana === s && d.ciudad === c);
+                    return row ? row.duplas : null;
+                }),
+                borderColor: colors[c],
+                tension: 0.4
+            }));
+
+            charts.chart3 = new Chart(document.getElementById('chart3'), {
+                type: 'line',
+                data: { labels: semanas.map(s => `S${s}`), datasets: datasets3 },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            const datasets4 = cities.map(c => ({
+                label: c,
+                data: semanas.map(s => {
+                    const row = data.find(d => d.semana === s && d.ciudad === c);
+                    return row ? row.fact7500 : null;
+                }),
+                borderColor: colors[c],
+                tension: 0.4
+            }));
+
+            charts.chart4 = new Chart(document.getElementById('chart4'), {
+                type: 'line',
+                data: { labels: semanas.map(s => `S${s}`), datasets: datasets4 },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
     </script>
 </body>
 </html>
