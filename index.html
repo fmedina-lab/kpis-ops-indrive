@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KPIs OPS INDRIVE - Veikul</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/recharts@2.5.0/dist/Recharts.js"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
 </head>
 <body>
     <div id="root"></div>
     
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
 
         // ===== DATOS DEL DASHBOARD =====
         const RAW_DATA = {
@@ -67,118 +67,6 @@ Octubre	Mérida	45	6	12.50%	2	4.8%	42	100.00%	17	40.48%	1	2.38%`
                 'Mérida': '#f59e0b'
             };
 
-            const getKPITargets = (month) => {
-                const monthTargets = {
-                    10: { duplas: 25, facturacion7500: 70, facturacion13100: 10 },
-                    11: { duplas: 35, facturacion7500: 75, facturacion13100: 20 },
-                    12: { duplas: 45, facturacion7500: 80, facturacion13100: 30 }
-                };
-                return monthTargets[month] || monthTargets[12];
-            };
-
-            const kpiDefinitions = [
-                {
-                    id: 'autos_con_1',
-                    name: 'Autos con >$1',
-                    description: 'Vehículos que generaron al menos $1 en facturación',
-                    isNumber: true,
-                    dataKeyWeekly: 'autos_con_1',
-                    dataKeyMonthly: 'autos_con_1',
-                    color: VEIKUL_COLORS.primary,
-                },
-                {
-                    id: 'num_siniestro',
-                    name: '# Autos en Siniestro',
-                    description: 'Número de vehículos en siniestro',
-                    isNumber: true,
-                    dataKeyWeekly: 'num_siniestro',
-                    dataKeyMonthly: 'num_siniestro',
-                    color: '#f87171',
-                },
-                {
-                    id: 'siniestro',
-                    name: '% Autos en Siniestro',
-                    description: '% Vehículos en siniestro sobre el total',
-                    target: 10,
-                    inverted: true,
-                    dataKeyWeekly: 'pct_siniestro',
-                    dataKeyMonthly: 'pct_siniestro',
-                    color: '#fb923c',
-                },
-                {
-                    id: 'num_duplas',
-                    name: '# Autos con Duplas',
-                    description: 'Número de vehículos con 2 conductores',
-                    isNumber: true,
-                    dataKeyWeekly: 'num_duplas',
-                    dataKeyMonthly: 'num_duplas',
-                    color: VEIKUL_COLORS.blue,
-                },
-                {
-                    id: 'duplas',
-                    name: '% Duplas',
-                    description: '% Vehículos activos con 2 conductores',
-                    targetVariable: true,
-                    dataKeyWeekly: 'pct_duplas',
-                    dataKeyMonthly: 'pct_duplas',
-                    color: '#326cf2',
-                },
-                {
-                    id: 'num_activos',
-                    name: '# Autos Activos',
-                    description: 'Total de vehículos activos',
-                    isNumber: true,
-                    dataKeyWeekly: 'num_activos',
-                    dataKeyMonthly: 'num_activos',
-                    color: VEIKUL_COLORS.accent,
-                },
-                {
-                    id: 'activos',
-                    name: '% Autos Activos',
-                    description: '% Total de vehículos activos',
-                    target: null,
-                    dataKeyWeekly: 'pct_activos',
-                    dataKeyMonthly: 'pct_activos',
-                    color: VEIKUL_COLORS.secondary,
-                },
-                {
-                    id: 'num_7500',
-                    name: '# Autos con $7,500+',
-                    description: 'Vehículos que generaron $7,500+ semanales',
-                    isNumber: true,
-                    dataKeyWeekly: 'num_fact_7500',
-                    dataKeyMonthly: 'num_fact_32500',
-                    color: '#14b8a6',
-                },
-                {
-                    id: 'facturacion_7500',
-                    name: '% Autos con $7,500+',
-                    description: '% Vehículos con $7,500+ semanales o $32,500 mensuales',
-                    targetVariable: true,
-                    dataKeyWeekly: 'pct_fact_7500',
-                    dataKeyMonthly: 'pct_fact_32500',
-                    color: '#10b981',
-                },
-                {
-                    id: 'num_13100',
-                    name: '# Autos con $13,100+',
-                    description: 'Vehículos que generaron $13,100+ semanales',
-                    isNumber: true,
-                    dataKeyWeekly: 'num_fact_13100',
-                    dataKeyMonthly: 'num_fact_57000',
-                    color: '#fbbf24',
-                },
-                {
-                    id: 'facturacion_13100',
-                    name: '% Autos con $13,100+',
-                    description: '% Vehículos con $13,100+ semanales o $57,000 mensuales',
-                    targetVariable: true,
-                    dataKeyWeekly: 'pct_fact_13100',
-                    dataKeyMonthly: 'pct_fact_57000',
-                    color: '#f59e0b',
-                }
-            ];
-
             const parsePercentage = (value) => {
                 if (typeof value === 'number') return value;
                 if (typeof value === 'string') {
@@ -215,83 +103,30 @@ Octubre	Mérida	45	6	12.50%	2	4.8%	42	100.00%	17	40.48%	1	2.38%`
                             
                             const cityPrefix = row.Ciudad;
                             weeklyBySemana[semana][`autos_con_1_${cityPrefix}`] = parseFloat(row['Autos con >$1']) || 0;
-                            weeklyBySemana[semana][`num_siniestro_${cityPrefix}`] = parseFloat(row['# Autos siniestro']) || 0;
                             weeklyBySemana[semana][`pct_siniestro_${cityPrefix}`] = parsePercentage(row['% Autos siniestro']);
-                            weeklyBySemana[semana][`num_duplas_${cityPrefix}`] = parseFloat(row['# Autos con duplas']) || 0;
                             weeklyBySemana[semana][`pct_duplas_${cityPrefix}`] = parsePercentage(row['% Autos con duplas']);
-                            weeklyBySemana[semana][`num_activos_${cityPrefix}`] = parseFloat(row['# Autos activos']) || 0;
-                            weeklyBySemana[semana][`pct_activos_${cityPrefix}`] = parsePercentage(row['% Autos activos']);
-                            weeklyBySemana[semana][`num_fact_7500_${cityPrefix}`] = parseFloat(row['# Autos con facturación >$7,500']) || 0;
                             weeklyBySemana[semana][`pct_fact_7500_${cityPrefix}`] = parsePercentage(row['% Autos con facturación >$7,500']);
-                            weeklyBySemana[semana][`num_fact_13100_${cityPrefix}`] = parseFloat(row['# Autos con facturación >$13,100']) || 0;
-                            weeklyBySemana[semana][`pct_fact_13100_${cityPrefix}`] = parsePercentage(row['% Autos con facturación >$13,100']);
-                        });
-                        
-                        const monthlyByMes = {};
-                        monthlyParsed.forEach(row => {
-                            if (!row.Ciudad || !row.Mes) return;
-                            const mes = row.Mes;
-                            if (!monthlyByMes[mes]) monthlyByMes[mes] = { mes };
-                            
-                            const cityPrefix = row.Ciudad;
-                            monthlyByMes[mes][`autos_con_1_${cityPrefix}`] = parseFloat(row['Autos con >$1']) || 0;
-                            monthlyByMes[mes][`num_siniestro_${cityPrefix}`] = parseFloat(row['# Autos siniestro']) || 0;
-                            monthlyByMes[mes][`pct_siniestro_${cityPrefix}`] = parsePercentage(row['% Autos siniestro']);
-                            monthlyByMes[mes][`num_duplas_${cityPrefix}`] = parseFloat(row['# Autos con duplas']) || 0;
-                            monthlyByMes[mes][`pct_duplas_${cityPrefix}`] = parsePercentage(row['% Autos con duplas']);
-                            monthlyByMes[mes][`num_activos_${cityPrefix}`] = parseFloat(row['# Autos activos']) || 0;
-                            monthlyByMes[mes][`pct_activos_${cityPrefix}`] = parsePercentage(row['% Autos activos']);
-                            monthlyByMes[mes][`num_fact_32500_${cityPrefix}`] = parseFloat(row['# Autos con facturación >$32,500']) || 0;
-                            monthlyByMes[mes][`pct_fact_32500_${cityPrefix}`] = parsePercentage(row['% Autos con facturación >$32,500']);
-                            monthlyByMes[mes][`num_fact_57000_${cityPrefix}`] = parseFloat(row['# Autos con facturación >$57,000']) || 0;
-                            monthlyByMes[mes][`pct_fact_57000_${cityPrefix}`] = parsePercentage(row['% Autos con facturación >$57,00']);
                         });
                         
                         setWeeklyData(Object.values(weeklyBySemana));
-                        setMonthlyData(Object.values(monthlyByMes));
+                        setMonthlyData([]);
                     } else {
                         const filteredWeekly = weeklyParsed
                             .filter(row => row.Ciudad === city && row.Semana)
                             .map(row => ({
                                 semana: row.Semana,
                                 autos_con_1: parseFloat(row['Autos con >$1']) || 0,
-                                num_siniestro: parseFloat(row['# Autos siniestro']) || 0,
                                 pct_siniestro: parsePercentage(row['% Autos siniestro']),
-                                num_duplas: parseFloat(row['# Autos con duplas']) || 0,
                                 pct_duplas: parsePercentage(row['% Autos con duplas']),
-                                num_activos: parseFloat(row['# Autos activos']) || 0,
-                                pct_activos: parsePercentage(row['% Autos activos']),
-                                num_fact_7500: parseFloat(row['# Autos con facturación >$7,500']) || 0,
                                 pct_fact_7500: parsePercentage(row['% Autos con facturación >$7,500']),
-                                num_fact_13100: parseFloat(row['# Autos con facturación >$13,100']) || 0,
-                                pct_fact_13100: parsePercentage(row['% Autos con facturación >$13,100'])
-                            }));
-
-                        const filteredMonthly = monthlyParsed
-                            .filter(row => row.Ciudad === city && row.Mes)
-                            .map(row => ({
-                                mes: row.Mes,
-                                autos_con_1: parseFloat(row['Autos con >$1']) || 0,
-                                num_siniestro: parseFloat(row['# Autos siniestro']) || 0,
-                                pct_siniestro: parsePercentage(row['% Autos siniestro']),
-                                num_duplas: parseFloat(row['# Autos con duplas']) || 0,
-                                pct_duplas: parsePercentage(row['% Autos con duplas']),
-                                num_activos: parseFloat(row['# Autos activos']) || 0,
-                                pct_activos: parsePercentage(row['% Autos activos']),
-                                num_fact_32500: parseFloat(row['# Autos con facturación >$32,500']) || 0,
-                                pct_fact_32500: parsePercentage(row['% Autos con facturación >$32,500']),
-                                num_fact_57000: parseFloat(row['# Autos con facturación >$57,000']) || 0,
-                                pct_fact_57000: parsePercentage(row['% Autos con facturación >$57,00'])
                             }));
 
                         setWeeklyData(filteredWeekly);
-                        setMonthlyData(filteredMonthly);
+                        setMonthlyData([]);
                     }
                     
                 } catch (error) {
                     console.error('Error loading data:', error);
-                    setWeeklyData([]);
-                    setMonthlyData([]);
                 }
             };
 
@@ -301,171 +136,39 @@ Octubre	Mérida	45	6	12.50%	2	4.8%	42	100.00%	17	40.48%	1	2.38%`
                 }
             }, [selectedCity]);
 
-            const currentData = viewMode === 'weekly' ? weeklyData : monthlyData;
-
-            const getKPIStatus = (value, target, inverted = false) => {
-                if (!target) return null;
-                const percentage = inverted ? (target / value) * 100 : (value / target) * 100;
-                if (percentage >= 95) return 'cumpliendo';
-                if (percentage >= 80) return 'riesgo';
-                return 'critico';
-            };
-
-            const calculateAlerts = () => {
-                if (!selectedCity || selectedCity === '' || currentData.length === 0) return { total: 0, criticos: 0, enRiesgo: 0, kpisCriticos: [] };
-                
-                const latestData = currentData[currentData.length - 1] || {};
-                let criticos = 0;
-                let enRiesgo = 0;
-                const kpisCriticos = [];
-
-                if (selectedCity === 'TODAS') {
-                    cities.forEach(city => {
-                        kpiDefinitions.forEach(kpi => {
-                            const currentMonth = new Date().getMonth() + 1;
-                            const targets = getKPITargets(currentMonth);
-                            const target = kpi.targetVariable 
-                                ? (kpi.id === 'duplas' ? targets.duplas : 
-                                   kpi.id === 'facturacion_7500' ? targets.facturacion7500 : 
-                                   kpi.id === 'facturacion_13100' ? targets.facturacion13100 : null)
-                                : kpi.target;
-
-                            if (!target) return;
-
-                            const dataKey = viewMode === 'weekly' ? kpi.dataKeyWeekly : kpi.dataKeyMonthly;
-                            const value = latestData[`${dataKey}_${city}`] || 0;
-                            const status = getKPIStatus(value, target, kpi.inverted);
-
-                            if (status === 'critico') {
-                                criticos++;
-                                kpisCriticos.push({ kpi: kpi.name, city, value, target, inverted: kpi.inverted });
-                            } else if (status === 'riesgo') {
-                                enRiesgo++;
-                            }
-                        });
-                    });
-                } else {
-                    kpiDefinitions.forEach(kpi => {
-                        const currentMonth = new Date().getMonth() + 1;
-                        const targets = getKPITargets(currentMonth);
-                        const target = kpi.targetVariable 
-                            ? (kpi.id === 'duplas' ? targets.duplas : 
-                               kpi.id === 'facturacion_7500' ? targets.facturacion7500 : 
-                               kpi.id === 'facturacion_13100' ? targets.facturacion13100 : null)
-                            : kpi.target;
-
-                        if (!target) return;
-
-                        const dataKey = viewMode === 'weekly' ? kpi.dataKeyWeekly : kpi.dataKeyMonthly;
-                        const value = latestData[dataKey] || 0;
-                        const status = getKPIStatus(value, target, kpi.inverted);
-
-                        if (status === 'critico') {
-                            criticos++;
-                            kpisCriticos.push({ kpi: kpi.name, city: selectedCity, value, target, inverted: kpi.inverted });
-                        } else if (status === 'riesgo') {
-                            enRiesgo++;
-                        }
-                    });
-                }
-
-                return { total: criticos + enRiesgo, criticos, enRiesgo, kpisCriticos };
-            };
-
-            const alerts = calculateAlerts();
+            const currentData = weeklyData;
 
             return (
                 <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
                     <div className="max-w-7xl mx-auto space-y-6">
-                        {/* Header con Logo */}
                         <div className="flex justify-between items-start mb-8">
                             <div>
                                 <div className="flex items-center gap-4 mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <svg width="50" height="50" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M598.334 474.408C641.995 474.408 677.389 439.171 677.389 395.704C677.389 352.237 641.995 317 598.334 317C554.672 317 519.278 352.237 519.278 395.704C519.278 439.171 554.672 474.408 598.334 474.408Z" fill="#00D195"/>
-                                            <path d="M547.709 564.395L872.808 446.668C881.512 443.507 890.854 442.484 900.04 443.683C909.226 444.883 917.985 448.269 925.576 453.557C933.168 458.844 939.367 465.876 943.647 474.057C947.927 482.237 950.162 491.324 950.163 500.547C950.174 512.313 946.558 523.798 939.802 533.45C933.045 543.103 923.474 550.458 912.383 554.521L610.14 663.409L912.383 772.672C923.474 776.736 933.045 784.09 939.802 793.743C946.558 803.396 950.174 814.881 950.163 826.646C950.162 835.87 947.927 844.957 943.647 853.138C939.367 861.318 933.168 868.35 925.576 873.637C917.985 878.925 909.226 882.312 900.04 883.511C890.854 884.71 881.512 883.686 872.808 880.526L547.709 762.894C527.239 755.471 509.556 741.965 497.054 724.204C484.552 706.442 477.836 685.285 477.815 663.597C477.828 641.918 484.543 620.77 497.046 603.021C509.551 585.274 527.239 571.788 547.709 564.395Z" fill="#00D195"/>
-                                            <path d="M722.349 663.597C722.327 685.285 715.611 706.442 703.11 724.204C690.608 741.965 672.925 755.471 652.454 762.894L327.355 880.526C318.651 883.686 309.31 884.71 300.124 883.511C290.938 882.312 282.178 878.925 274.587 873.637C266.995 868.35 260.797 861.318 256.517 853.138C252.237 844.957 250.001 835.87 250 826.646C249.989 814.881 253.606 803.396 260.362 793.743C267.119 784.09 276.69 776.736 287.78 772.672L589.551 663.409L287.875 554.521C276.784 550.458 267.214 543.103 260.457 533.45C253.7 523.798 250.083 512.313 250.095 500.547C250.096 491.324 252.331 482.237 256.611 474.057C260.891 465.876 267.09 458.844 274.681 453.557C282.272 448.269 291.032 444.883 300.219 443.683C309.405 442.484 318.746 443.507 327.45 446.668L652.55 564.395C673.002 571.804 690.669 585.297 703.155 603.043C715.642 620.789 722.342 641.93 722.349 663.597Z" fill="#B3F0E0"/>
-                                            <path d="M610.423 663.411L912.665 772.675C923.756 776.738 933.326 784.093 940.083 793.745C946.84 803.397 950.457 814.883 950.446 826.648C950.444 835.872 948.209 844.959 943.929 853.139C939.649 861.32 933.45 868.352 925.859 873.639C918.268 878.927 909.507 882.313 900.321 883.512C891.135 884.712 881.794 883.688 873.09 880.528L547.99 762.895C527.521 755.473 509.838 741.966 497.336 724.206C484.834 706.445 478.117 685.287 478.097 663.599C478.172 650.731 480.605 637.985 485.275 625.986L610.423 663.411Z" fill="#00D195"/>
-                                        </svg>
-                                        <div>
-                                            <h1 className="text-4xl font-bold" style={{ color: VEIKUL_COLORS.primary }}>
-                                                KPIs OPS INDRIVE
-                                            </h1>
-                                            <p className="text-sm" style={{ color: VEIKUL_COLORS.secondary }}>Powered by Veikul</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 text-slate-400">
-                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style={{ 
-                                        backgroundColor: 'rgba(0, 204, 153, 0.1)', 
-                                        borderColor: VEIKUL_COLORS.primary + '40' 
-                                    }}>
-                                        <span className="text-sm">Last update: <span className="text-slate-300">{lastUpdate}</span></span>
+                                    <svg width="50" height="50" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M598.334 474.408C641.995 474.408 677.389 439.171 677.389 395.704C677.389 352.237 641.995 317 598.334 317C554.672 317 519.278 352.237 519.278 395.704C519.278 439.171 554.672 474.408 598.334 474.408Z" fill="#00D195"/>
+                                        <path d="M547.709 564.395L872.808 446.668C881.512 443.507 890.854 442.484 900.04 443.683C909.226 444.883 917.985 448.269 925.576 453.557C933.168 458.844 939.367 465.876 943.647 474.057C947.927 482.237 950.162 491.324 950.163 500.547C950.174 512.313 946.558 523.798 939.802 533.45C933.045 543.103 923.474 550.458 912.383 554.521L610.14 663.409L912.383 772.672C923.474 776.736 933.045 784.09 939.802 793.743C946.558 803.396 950.174 814.881 950.163 826.646C950.162 835.87 947.927 844.957 943.647 853.138C939.367 861.318 933.168 868.35 925.576 873.637C917.985 878.925 909.226 882.312 900.04 883.511C890.854 884.71 881.512 883.686 872.808 880.526L547.709 762.894C527.239 755.471 509.556 741.965 497.054 724.204C484.552 706.442 477.836 685.285 477.815 663.597C477.828 641.918 484.543 620.77 497.046 603.021C509.551 585.274 527.239 571.788 547.709 564.395Z" fill="#00D195"/>
+                                        <path d="M722.349 663.597C722.327 685.285 715.611 706.442 703.11 724.204C690.608 741.965 672.925 755.471 652.454 762.894L327.355 880.526C318.651 883.686 309.31 884.71 300.124 883.511C290.938 882.312 282.178 878.925 274.587 873.637C266.995 868.35 260.797 861.318 256.517 853.138C252.237 844.957 250.001 835.87 250 826.646C249.989 814.881 253.606 803.396 260.362 793.743C267.119 784.09 276.69 776.736 287.78 772.672L589.551 663.409L287.875 554.521C276.784 550.458 267.214 543.103 260.457 533.45C253.7 523.798 250.083 512.313 250.095 500.547C250.096 491.324 252.331 482.237 256.611 474.057C260.891 465.876 267.09 458.844 274.681 453.557C282.272 448.269 291.032 444.883 300.219 443.683C309.405 442.484 318.746 443.507 327.45 446.668L652.55 564.395C673.002 571.804 690.669 585.297 703.155 603.043C715.642 620.789 722.342 641.93 722.349 663.597Z" fill="#B3F0E0"/>
+                                        <path d="M610.423 663.411L912.665 772.675C923.756 776.738 933.326 784.093 940.083 793.745C946.84 803.397 950.457 814.883 950.446 826.648C950.444 835.872 948.209 844.959 943.929 853.139C939.649 861.32 933.45 868.352 925.859 873.639C918.268 878.927 909.507 882.313 900.321 883.512C891.135 884.712 881.794 883.688 873.09 880.528L547.99 762.895C527.521 755.473 509.838 741.966 497.336 724.206C484.834 706.445 478.117 685.287 478.097 663.599C478.172 650.731 480.605 637.985 485.275 625.986L610.423 663.411Z" fill="#00D195"/>
+                                    </svg>
+                                    <div>
+                                        <h1 className="text-4xl font-bold" style={{ color: VEIKUL_COLORS.primary }}>
+                                            KPIs OPS INDRIVE
+                                        </h1>
+                                        <p className="text-sm" style={{ color: VEIKUL_COLORS.secondary }}>Powered by Veikul</p>
                                     </div>
                                 </div>
                             </div>
                             <div className="flex gap-3">
-                                {alerts.total > 0 && selectedCity && (
-                                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
-                                        alerts.criticos > 0 
-                                            ? 'bg-red-500/10 border-red-500/30 text-red-400' 
-                                            : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                                    }`}>
-                                        <span className="font-bold text-lg">{alerts.criticos > 0 ? '🔴' : '🟡'}</span>
-                                        <div className="text-sm">
-                                            <div className="font-semibold">
-                                                {alerts.total} KPI{alerts.total > 1 ? 's' : ''}
-                                              </div>
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                <div className="flex bg-slate-800/50 backdrop-blur-sm rounded-lg p-1 border border-slate-700/50">
-                                    <button
-                                        onClick={() => setViewMode('weekly')}
-                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                                            viewMode === 'weekly'
-                                                ? 'text-white shadow-lg'
-                                                : 'text-slate-400 hover:text-slate-200'
-                                        }`}
-                                        style={viewMode === 'weekly' ? { 
-                                            backgroundColor: VEIKUL_COLORS.primary,
-                                            boxShadow: `0 4px 14px ${VEIKUL_COLORS.primary}40`
-                                        } : {}}
-                                    >
-                                        📅 Semanal
-                                    </button>
-                                    <button
-                                        onClick={() => setViewMode('monthly')}
-                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                                            viewMode === 'monthly'
-                                                ? 'text-white shadow-lg'
-                                                : 'text-slate-400 hover:text-slate-200'
-                                        }`}
-                                        style={viewMode === 'monthly' ? { 
-                                            backgroundColor: VEIKUL_COLORS.blue,
-                                            boxShadow: `0 4px 14px ${VEIKUL_COLORS.blue}40`
-                                        } : {}}
-                                    >
-                                        📊 Mensual
-                                    </button>
-                                </div>
-                                
                                 <select
                                     value={selectedCity}
                                     onChange={(e) => setSelectedCity(e.target.value)}
-                                    className="bg-slate-800/50 backdrop-blur-sm border text-slate-200 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 min-w-[200px] cursor-pointer hover:border-slate-600 transition-all"
-                                    style={{
-                                        borderColor: selectedCity ? VEIKUL_COLORS.primary + '60' : '#475569'
-                                    }}
+                                    className="bg-slate-800/50 backdrop-blur-sm border text-slate-200 px-4 py-2 rounded-lg min-w-[200px]"
+                                    style={{ borderColor: selectedCity ? VEIKUL_COLORS.primary + '60' : '#475569' }}
                                 >
                                     <option value="">📍 Seleccionar ciudad...</option>
                                     <option value="TODAS">🌎 TODAS</option>
                                     {cities.map((city) => (
-                                        <option key={city} value={city}>
-                                            {city}
-                                        </option>
+                                        <option key={city} value={city}>{city}</option>
                                     ))}
                                 </select>
                             </div>
@@ -474,165 +177,158 @@ Octubre	Mérida	45	6	12.50%	2	4.8%	42	100.00%	17	40.48%	1	2.38%`
                         {!selectedCity ? (
                             <div className="flex items-center justify-center h-96">
                                 <div className="text-center">
-                                    <div className="rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4 border-2" style={{
-                                        backgroundColor: VEIKUL_COLORS.primary + '10',
-                                        borderColor: VEIKUL_COLORS.primary + '30'
-                                    }}>
-                                        <span className="text-5xl">📊</span>
-                                    </div>
                                     <h3 className="text-2xl font-semibold mb-2" style={{ color: VEIKUL_COLORS.primary }}>
                                         Selecciona una ciudad
                                     </h3>
-                                    <p className="text-slate-400">Elige una ciudad del menú superior para ver los KPIs</p>
+                                    <p className="text-slate-400">Elige una ciudad del menú superior</p>
                                 </div>
                             </div>
                         ) : (
-                            <>
-                                {alerts.criticos > 0 && (
-                                    <div className="bg-red-500/10 border-2 border-red-500/30 rounded-xl p-4 mb-6">
-                                        <div className="flex items-start gap-3">
-                                            <span className="text-3xl">⚠️</span>
-                                            <div className="flex-1">
-                                                <h3 className="text-lg font-bold text-red-400 mb-2">
-                                                    {alerts.criticos} KPI{alerts.criticos > 1 ? 's' : ''} en estado crítico
-                                                </h3>
-                                                <p className="text-sm text-slate-300 mb-3">
-                                                    Los siguientes KPIs están por debajo del 80% y requieren atención:
-                                                </p>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                                    {alerts.kpisCriticos.map((item, idx) => {
-                                                        const percentage = item.inverted 
-                                                            ? ((item.target / item.value) * 100).toFixed(1)
-                                                            : ((item.value / item.target) * 100).toFixed(1);
-                                                        return (
-                                                            <div key={idx} className="bg-slate-900/50 rounded-lg p-3 border border-red-500/20">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div>
-                                                                        <div className="font-semibold text-red-300 text-sm">{item.kpi}</div>
-                                                                        <div className="text-xs text-slate-400">
-                                                                            {selectedCity === 'TODAS' && `${item.city} • `}
-                                                                            {item.value.toFixed(1)}% / {item.target}%
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="text-right">
-                                                                        <div className="text-lg font-bold text-red-400">{percentage}%</div>
-                                                                        <div className="text-xs text-slate-500">cumplimiento</div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {kpiDefinitions.map((kpi) => {
-                                        const currentMonth = new Date().getMonth() + 1;
-                                        const targets = getKPITargets(currentMonth);
-                                        const target = kpi.targetVariable 
-                                            ? (kpi.id === 'duplas' ? targets.duplas : 
-                                               kpi.id === 'facturacion_7500' ? targets.facturacion7500 : 
-                                               kpi.id === 'facturacion_13100' ? targets.facturacion13100 : null)
-                                            : kpi.target;
-
-                                        const dataKey = viewMode === 'weekly' ? kpi.dataKeyWeekly : kpi.dataKeyMonthly;
-
-                                        return (
-                                            <div key={kpi.id} className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6 backdrop-blur-sm hover:border-slate-600/50 transition-all">
-                                                <div className="mb-4">
-                                                    <div className="flex items-start justify-between mb-1">
-                                                        <h3 className="text-lg font-bold" style={{ color: kpi.color }}>
-                                                            {kpi.name}
-                                                        </h3>
-                                                        {target && selectedCity !== 'TODAS' && (() => {
-                                                            const latestData = currentData[currentData.length - 1] || {};
-                                                            const value = latestData[dataKey] || 0;
-                                                            const status = getKPIStatus(value, target, kpi.inverted);
-                                                            
-                                                            if (!status) return null;
-                                                            
-                                                            const badges = {
-                                                                'cumpliendo': { text: '✓ Cumpliendo', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', color: 'text-emerald-400' },
-                                                                'riesgo': { text: '⚠ En riesgo', bg: 'bg-amber-500/10', border: 'border-amber-500/30', color: 'text-amber-400' },
-                                                                'critico': { text: '✕ Crítico', bg: 'bg-red-500/10', border: 'border-red-500/30', color: 'text-red-400' }
-                                                            };
-                                                            
-                                                            const badge = badges[status];
-                                                            
-                                                            return (
-                                                                <span className={`px-2 py-1 rounded-md text-xs font-semibold border ${badge.bg} ${badge.border} ${badge.color}`}>
-                                                                    {badge.text}
-                                                                </span>
-                                                            );
-                                                        })()}
-                                                    </div>
-                                                    <p className="text-xs text-slate-400 leading-relaxed">
-                                                        {kpi.description}
-                                                    </p>
-                                                </div>
-                                                <ResponsiveContainer width="100%" height={280}>
-                                                    <LineChart data={currentData} margin={{ top: 20, right: 20, left: 0, bottom: 5 }}>
-                                                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                                        <XAxis
-                                                            dataKey={viewMode === 'weekly' ? 'semana' : 'mes'}
-                                                            stroke="#64748b"
-                                                            tick={{ fontSize: 12, fill: '#94a3b8' }}
-                                                        />
-                                                        <YAxis stroke="#64748b" tick={{ fill: '#94a3b8' }} />
-                                                        <Tooltip />
-                                                        <Legend />
-                                                        {target && (
-                                                            <Line
-                                                                type="monotone"
-                                                                dataKey={() => target}
-                                                                stroke="#64748b"
-                                                                strokeDasharray="5 5"
-                                                                strokeWidth={2}
-                                                                name="Meta"
-                                                                dot={false}
-                                                            />
-                                                        )}
-                                                        {selectedCity === 'TODAS' ? (
-                                                            cities.map(city => (
-                                                                <Line
-                                                                    key={city}
-                                                                    type="monotone"
-                                                                    dataKey={`${dataKey}_${city}`}
-                                                                    stroke={CITY_COLORS[city]}
-                                                                    strokeWidth={3}
-                                                                    dot={{ fill: CITY_COLORS[city], r: 6, strokeWidth: 2, stroke: '#ffffff' }}
-                                                                    activeDot={{ r: 8, stroke: '#ffffff', strokeWidth: 2 }}
-                                                                    name={city}
-                                                                />
-                                                            ))
-                                                        ) : (
-                                                            <Line
-                                                                type="monotone"
-                                                                dataKey={dataKey}
-                                                                stroke={kpi.color}
-                                                                strokeWidth={3}
-                                                                dot={{ fill: kpi.color, r: 6, strokeWidth: 2, stroke: '#ffffff' }}
-                                                                activeDot={{ r: 8, stroke: '#ffffff', strokeWidth: 2 }}
-                                                                name={kpi.name}
-                                                            />
-                                                        )}
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        );
-                                    })}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6">
+                                    <h3 className="text-lg font-bold mb-4" style={{ color: VEIKUL_COLORS.primary }}>
+                                        Autos con al menos $1
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={280}>
+                                        <LineChart data={currentData}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                                            <XAxis dataKey="semana" stroke="#64748b" />
+                                            <YAxis stroke="#64748b" />
+                                            <Tooltip />
+                                            <Legend />
+                                            {selectedCity === 'TODAS' ? (
+                                                cities.map(city => (
+                                                    <Line
+                                                        key={city}
+                                                        type="monotone"
+                                                        dataKey={`autos_con_1_${city}`}
+                                                        stroke={CITY_COLORS[city]}
+                                                        strokeWidth={3}
+                                                        name={city}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="autos_con_1"
+                                                    stroke={VEIKUL_COLORS.primary}
+                                                    strokeWidth={3}
+                                                />
+                                            )}
+                                        </LineChart>
+                                    </ResponsiveContainer>
                                 </div>
-                            </>
+
+                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6">
+                                    <h3 className="text-lg font-bold mb-4" style={{ color: '#fb923c' }}>
+                                        % Autos en Siniestro
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={280}>
+                                        <LineChart data={currentData}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                                            <XAxis dataKey="semana" stroke="#64748b" />
+                                            <YAxis stroke="#64748b" />
+                                            <Tooltip />
+                                            <Legend />
+                                            {selectedCity === 'TODAS' ? (
+                                                cities.map(city => (
+                                                    <Line
+                                                        key={city}
+                                                        type="monotone"
+                                                        dataKey={`pct_siniestro_${city}`}
+                                                        stroke={CITY_COLORS[city]}
+                                                        strokeWidth={3}
+                                                        name={city}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="pct_siniestro"
+                                                    stroke="#fb923c"
+                                                    strokeWidth={3}
+                                                />
+                                            )}
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6">
+                                    <h3 className="text-lg font-bold mb-4" style={{ color: VEIKUL_COLORS.blue }}>
+                                        % Duplas
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={280}>
+                                        <LineChart data={currentData}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                                            <XAxis dataKey="semana" stroke="#64748b" />
+                                            <YAxis stroke="#64748b" />
+                                            <Tooltip />
+                                            <Legend />
+                                            {selectedCity === 'TODAS' ? (
+                                                cities.map(city => (
+                                                    <Line
+                                                        key={city}
+                                                        type="monotone"
+                                                        dataKey={`pct_duplas_${city}`}
+                                                        stroke={CITY_COLORS[city]}
+                                                        strokeWidth={3}
+                                                        name={city}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="pct_duplas"
+                                                    stroke={VEIKUL_COLORS.blue}
+                                                    strokeWidth={3}
+                                                />
+                                            )}
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6">
+                                    <h3 className="text-lg font-bold mb-4" style={{ color: '#10b981' }}>
+                                        % Autos con $7,500+
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={280}>
+                                        <LineChart data={currentData}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                                            <XAxis dataKey="semana" stroke="#64748b" />
+                                            <YAxis stroke="#64748b" />
+                                            <Tooltip />
+                                            <Legend />
+                                            {selectedCity === 'TODAS' ? (
+                                                cities.map(city => (
+                                                    <Line
+                                                        key={city}
+                                                        type="monotone"
+                                                        dataKey={`pct_fact_7500_${city}`}
+                                                        stroke={CITY_COLORS[city]}
+                                                        strokeWidth={3}
+                                                        name={city}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="pct_fact_7500"
+                                                    stroke="#10b981"
+                                                    strokeWidth={3}
+                                                />
+                                            )}
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
             );
         };
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
